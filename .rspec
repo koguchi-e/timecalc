@@ -1,1 +1,35 @@
---require spec_helper
+
+# frozen_string_literal: true
+
+require "spec_helper"
+require_relative "../lib/timecalc"
+
+RSpec.describe Timecalc do
+  describe ".to_minutes" do
+    it "時刻を分単位に変換できる" do
+      expect(described_class.to_minutes("11:17")).to eq(677)
+    end
+
+    it "分が省略された場合は0分として扱う" do
+      expect(described_class.to_minutes("12")).to eq(720)
+    end
+  end
+
+  describe ".format_duration" do
+    it "分を時間と分に変換できる" do
+      expect(described_class.format_duration(268)).to eq("4時間28分")
+    end
+
+    it "60分未満の時間も表示できる" do
+      expect(described_class.format_duration(43)).to eq("0時間43分")
+    end
+  end
+
+  describe ".run" do
+    it "複数の時間帯の合計を表示する" do
+      expect do
+        described_class.run(["11:17-12, 12:30-13, 13:15-14, 15:30-18"])
+      end.to output(/合計：4時間28分/).to_stdout
+    end
+  end
+end
