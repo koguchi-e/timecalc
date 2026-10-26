@@ -20,8 +20,7 @@ module Timecalc
     end
 
     puts "--------------------------"
-    puts "合計："
-    puts "#{format_duration(total_minutes)}"
+    puts "合計：#{format_duration(total_minutes)}"
   end
 
   def self.to_minutes(time)
