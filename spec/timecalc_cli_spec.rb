@@ -7,10 +7,10 @@ require "spec_helper"
 require_relative "../lib/timecalc_cli"
 
 RSpec.describe TimecalcCLI do
-  def run_cli(args)
+  def run_cli(args, input: "")
     output = StringIO.new
     error = StringIO.new
-    status = described_class.run(args, output: output, error: error)
+    status = described_class.run(args, input: StringIO.new(input), output: output, error: error)
 
     [status, output.string, error.string]
   end
@@ -77,7 +77,7 @@ RSpec.describe TimecalcCLI do
       status, output, error = run_cli([])
 
       expect(status).to eq(0)
-      expect(output).to include("使い方: timecalc")
+      expect(output).to include("使い方:", "timecalc --hm")
       expect(error).to be_empty
     end
 
@@ -85,7 +85,7 @@ RSpec.describe TimecalcCLI do
       status, output, error = run_cli(["--help"])
 
       expect(status).to eq(0)
-      expect(output).to include("使い方: timecalc")
+      expect(output).to include("使い方:", "timecalc --hm")
       expect(error).to be_empty
     end
 
@@ -96,6 +96,57 @@ RSpec.describe TimecalcCLI do
       expect(output).to eq("#{described_class::VERSION}\n")
       expect(error).to be_empty
     end
+
+    it "--hm で複数行の時間と分を合計する" do
+      input = <<~INPUT
+        6.15
+        8.4
+        7.7
+        7.5
+        0.3
+        1
+        0
+        8.04
+      INPUT
+
+      status, output, error = run_cli(["--hm"], input: input)
+
+      expect(status).to eq(0)
+      expect(output).to eq("合計：37時間38分\n")
+      expect(error).to be_empty
+    end
+
+    it "--hm では空行を無視し、24時間以上の経過時間を受け付ける" do
+      status, output, error = run_cli(["--hm"], input: "\n25.30\n\n1\n")
+
+      expect(status).to eq(0)
+      expect(output).to eq("合計：26時間30分\n")
+      expect(error).to be_empty
+    end
+
+    {
+      "1.60" => "分は 0〜59",
+      "-1" => "時間は H または H.MM",
+      "abc" => "時間は H または H.MM",
+      "1.2.3" => "時間は H または H.MM",
+      "1." => "時間は H または H.MM"
+    }.each do |input, message|
+      it "--hm は不正な入力 #{input.inspect} を行番号付きでエラーにする" do
+        status, output, error = run_cli(["--hm"], input: "#{input}\n")
+
+        expect(status).to eq(1)
+        expect(output).to be_empty
+        expect(error).to include("エラー: 行 1:", message)
+      end
+    end
+
+    it "--hm は不正な行がある場合に合計を表示しない" do
+      status, output, error = run_cli(["--hm"], input: "1\n\n2.60\n")
+
+      expect(status).to eq(1)
+      expect(output).to be_empty
+      expect(error).to include("行 3:", "分は 0〜59")
+    end
   end
 
   it "実行コマンドは不正な入力で標準エラー出力と非0終了コードを返す" do
@@ -104,5 +155,18 @@ RSpec.describe TimecalcCLI do
     expect(process_status.exitstatus).to eq(1)
     expect(output).to be_empty
     expect(error).to include("エラー:", "00:00 から 23:59")
+  end
+
+  it "実行コマンドは --hm で標準入力を受け取る" do
+    output, error, process_status = Open3.capture3(
+      RbConfig.ruby,
+      "bin/timecalc",
+      "--hm",
+      stdin_data: "6.15\n8.4\n"
+    )
+
+    expect(process_status.exitstatus).to eq(0)
+    expect(output).to eq("合計：14時間19分\n")
+    expect(error).to be_empty
   end
 end

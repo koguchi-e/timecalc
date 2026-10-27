@@ -4,11 +4,12 @@ module TimecalcCLI
   VERSION = "0.1.0"
   TIME_PATTERN = /\A\d{2}(?::\d{2})?\z/
   RANGE_PATTERN = /\A(?<start>\d{2}(?::\d{2})?)-(?<finish>\d{2}(?::\d{2})?)\z/
+  HM_PATTERN = /\A(?<hours>\d+)(?:\.(?<minutes>\d{1,2}))?\z/
   ParsedRange = Struct.new(:start_label, :end_label, :duration, keyword_init: true)
 
   class InputError < StandardError; end
 
-  def self.run(args, output: $stdout, error: $stderr)
+  def self.run(args, input: $stdin, output: $stdout, error: $stderr)
     case args
     when []
       output.puts help
@@ -19,6 +20,8 @@ module TimecalcCLI
     when ["--version"]
       output.puts VERSION
       return 0
+    when ["--hm"]
+      return run_hm(input, output)
     end
 
     ranges = parse_ranges(args.join(" "))
@@ -27,6 +30,37 @@ module TimecalcCLI
   rescue InputError => e
     error.puts "エラー: #{e.message}"
     1
+  end
+
+  def self.run_hm(input, output)
+    total_minutes = parse_hm_entries(input).sum
+    output.puts "合計：#{format_duration(total_minutes)}"
+    0
+  end
+
+  def self.parse_hm_entries(input)
+    input.each_line.with_index(1).filter_map do |line, line_number|
+      value = line.strip
+      next if value.empty?
+
+      parse_hm_entry(value, line_number)
+    end
+  end
+
+  def self.parse_hm_entry(value, line_number)
+    match = HM_PATTERN.match(value)
+    unless match
+      raise InputError, "行 #{line_number}: 時間は H または H.MM 形式で指定してください: #{value.inspect}"
+    end
+
+    hours = match[:hours].to_i
+    minutes = match[:minutes]&.to_i || 0
+
+    unless minutes.between?(0, 59)
+      raise InputError, "行 #{line_number}: 分は 0〜59 の範囲で指定してください: #{value.inspect}"
+    end
+
+    (hours * 60) + minutes
   end
 
   def self.parse_ranges(input)
@@ -87,11 +121,15 @@ module TimecalcCLI
 
   def self.help
     <<~HELP.chomp
-      使い方: timecalc "HH-HH, HH:MM-HH:MM"
+      使い方:
+        timecalc "HH-HH, HH:MM-HH:MM"
+        timecalc --hm
 
       複数の時間帯をカンマ区切りで指定します。
       時刻は 00〜23 時、00〜59 分の範囲で指定してください。
       日付をまたぐ時間帯には対応していません。
+
+      --hm は標準入力から 1 行につき H または H.MM 形式の経過時間を受け取り、EOF で合計を表示します。
     HELP
   end
 end
