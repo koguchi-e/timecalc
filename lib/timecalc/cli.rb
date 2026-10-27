@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module TimecalcCLI
-  VERSION = "0.1.0"
+  VERSION = "0.1.1"
   TIME_PATTERN = /\A\d{2}(?::\d{2})?\z/
   RANGE_PATTERN = /\A(?<start>\d{2}(?::\d{2})?)-(?<finish>\d{2}(?::\d{2})?)\z/
   HM_PATTERN = /\A(?<hours>\d+)(?:\.(?<minutes>\d{1,2}))?\z/

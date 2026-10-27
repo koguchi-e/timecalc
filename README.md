@@ -138,7 +138,7 @@ gem build timecalc-cli.gemspec
 ビルドしたGemをローカルにインストールします。
 
 ```bash
-gem install ./timecalc-cli-0.1.0.gem
+gem install ./timecalc-cli-0.1.1.gem
 ```
 
 ### 動作環境
@@ -285,7 +285,7 @@ gem build timecalc-cli.gemspec
 Install the gem locally:
 
 ```bash
-gem install ./timecalc-cli-0.1.0.gem
+gem install ./timecalc-cli-0.1.1.gem
 ```
 
 ### Requirements
