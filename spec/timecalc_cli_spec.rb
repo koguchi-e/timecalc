@@ -116,6 +116,37 @@ RSpec.describe TimecalcCLI do
       expect(error).to be_empty
     end
 
+    {
+      "6.5" => "6時間5分",
+      "6.50" => "6時間50分",
+      "6.05" => "6時間5分",
+      "8.4" => "8時間4分",
+      "0.3" => "0時間3分",
+      "1" => "1時間0分",
+      "0" => "0時間0分",
+      "24.30" => "24時間30分",
+      "6.15\n5.15" => "11時間30分",
+      "0.30\n0.45" => "1時間15分",
+      "8.4\n6.15\n7.5" => "21時間24分",
+      "24.30\n1.45" => "26時間15分"
+    }.each do |input, expected_duration|
+      it "--hm は #{input.inspect} を #{expected_duration} として計算する" do
+        status, output, error = run_cli(["--hm"], input: "#{input}\n")
+
+        expect(status).to eq(0)
+        expect(output).to eq("合計：#{expected_duration}\n")
+        expect(error).to be_empty
+      end
+    end
+
+    it "--hm は 6.5 と 6.50 を異なる分として合計する" do
+      status, output, error = run_cli(["--hm"], input: "6.5\n6.50\n")
+
+      expect(status).to eq(0)
+      expect(output).to eq("合計：12時間55分\n")
+      expect(error).to be_empty
+    end
+
     it "--hm では空行を無視し、24時間以上の経過時間を受け付ける" do
       status, output, error = run_cli(["--hm"], input: "\n25.30\n\n1\n")
 
@@ -140,12 +171,46 @@ RSpec.describe TimecalcCLI do
       end
     end
 
+    {
+      "6.60" => "分は 0〜59",
+      "6.99" => "分は 0〜59",
+      "-1.30" => "時間は H または H.MM",
+      "abc" => "時間は H または H.MM",
+      "6.1.5" => "時間は H または H.MM",
+      "6." => "時間は H または H.MM",
+      ".30" => "時間は H または H.MM"
+    }.each do |input, message|
+      it "--hm は #{input.inspect} を正常な値として合計しない" do
+        status, output, error = run_cli(["--hm"], input: "#{input}\n")
+
+        expect(status).to eq(1)
+        expect(output).to be_empty
+        expect(error).to include("エラー: 行 1:", message)
+      end
+    end
+
     it "--hm は不正な行がある場合に合計を表示しない" do
       status, output, error = run_cli(["--hm"], input: "1\n\n2.60\n")
 
       expect(status).to eq(1)
       expect(output).to be_empty
       expect(error).to include("行 3:", "分は 0〜59")
+    end
+
+    it "--hm は多数行を分単位で正確に合計する" do
+      status, output, error = run_cli(["--hm"], input: ("0.1\n" * 1000))
+
+      expect(status).to eq(0)
+      expect(output).to eq("合計：16時間40分\n")
+      expect(error).to be_empty
+    end
+
+    it "既存の時間帯計算で4時間28分を表示する" do
+      status, output, error = run_cli(["11:17-12, 12:30-13, 13:15-14, 15:30-18"])
+
+      expect(status).to eq(0)
+      expect(output).to include("合計：4時間28分")
+      expect(error).to be_empty
     end
   end
 
