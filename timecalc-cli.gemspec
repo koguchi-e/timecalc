@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 Gem::Specification.new do |spec|
-  spec.name = "timecalc"
+  spec.name = "timecalc-cli"
   spec.version = "0.1.0"
   spec.authors = ["Eli"]
   spec.summary = "A simple CLI time calculator"
@@ -11,7 +11,8 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.1"
 
   spec.files = [
-    "lib/timecalc.rb",
+    "lib/timecalc/cli.rb",
+    "lib/timecalc_cli.rb",
     "bin/timecalc",
     "README.md"
   ]

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require_relative "../lib/timecalc"
+require_relative "../lib/timecalc_cli"
 
-Timecalc.run(ARGV)
+exit TimecalcCLI.run(ARGV)

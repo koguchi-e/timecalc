@@ -2,9 +2,9 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require_relative "../lib/timecalc"
+require_relative "../lib/timecalc_cli"
 
-RSpec.describe Timecalc do
+RSpec.describe TimecalcCLI do
   describe ".to_minutes" do
     it "時刻を分単位に変換できる" do
       expect(described_class.to_minutes("11:17")).to eq(677)
