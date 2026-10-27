@@ -14,6 +14,7 @@ Gem::Specification.new do |spec|
     "lib/timecalc/cli.rb",
     "lib/timecalc_cli.rb",
     "bin/timecalc",
+    "LICENSE",
     "README.md"
   ]
 
