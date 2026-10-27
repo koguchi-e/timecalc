@@ -24,7 +24,7 @@ Rubyがインストールされている環境で、以下を実行してくだ�
 gem install timecalc-cli
 ```
 
-※ RubyGems.orgへの公開後に利用できます。
+RubyGems.org: [timecalc-cli](https://rubygems.org/gems/timecalc-cli)
 
 ### 使い方
 
@@ -171,7 +171,7 @@ Run the following command in an environment with Ruby installed.
 gem install timecalc-cli
 ```
 
-_This command will be available after the gem is published to RubyGems.org._
+RubyGems.org: [timecalc-cli](https://rubygems.org/gems/timecalc-cli)
 
 ### Usage
 
